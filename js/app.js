@@ -1,46 +1,128 @@
-// Enemies our player must avoid
-var Enemy = function() {
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
-
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
-    this.sprite = 'images/enemy-bug.png';
+const conf = {
+  cellWidth: 101,
+  cellHeight: 101,
+  picOffset: 19,
+  bugSpeedMin: 50,
+  bugSpeedMax: 200,
+  bugWidth: 100,
+  playerWidth: 80,
 };
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
-Enemy.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
+const Enemy = function (row, player) {
+  this.x = 0;
+  this.y = conf.cellHeight * row - conf.picOffset * (row + 1);
+  this.speed = this.randomSpeed();
+  this.sprite = 'images/enemy-bug.png';
+  this.player = player;
 };
 
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+Enemy.prototype.update = function (dt) {
+  this.x += this.speed * dt;
+  if (this.x > conf.cellWidth * 5) {
+    this.x = -100;
+    this.speed = this.randomSpeed();
+  }
+  this.checkCollision();
 };
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
+Enemy.prototype.randomSpeed = function () {
+  return Math.floor(
+    Math.random() * (conf.bugSpeedMax - conf.bugSpeedMin + 1) +
+      conf.bugSpeedMin,
+  );
+};
 
+Enemy.prototype.render = function () {
+  ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
+Enemy.prototype.checkCollision = function () {
+  if (
+    this.x >= player.x - conf.bugWidth &&
+    this.x <= player.x + conf.playerWidth &&
+    this.y == player.y
+  )
+    gameOver();
+};
 
+const Player = function () {
+  this.stepX = 2;
+  this.stepY = 5;
+  this.sprite = 'images/cat.png';
+};
 
+Player.prototype.update = function () {
+  this.x = conf.cellWidth * this.stepX;
+  this.y = conf.cellHeight * this.stepY - conf.picOffset * (this.stepY + 1);
+  this.checkBorders();
+};
 
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
-document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
+Player.prototype.checkBorders = function () {
+  if (this.x < 0) {
+    this.stepX = 0;
+  }
+  if (this.x > conf.cellWidth * 4) {
+    this.stepX = 4;
+  }
+  if (this.y < 0) {
+    winAction();
+  }
+  if (this.y > conf.cellHeight * 4) {
+    this.stepY = 5;
+    this.y = conf.cellHeight * this.stepY - conf.picOffset * (this.stepY + 1);
+  }
+};
 
-    player.handleInput(allowedKeys[e.keyCode]);
+function winAction() {
+  setTimeout(() => {
+    alert('You win!');
+    resetGame();
+  }, 10);
+}
+
+function gameOver() {
+  alert('Game over!');
+  resetGame();
+}
+
+function resetGame() {
+  player.stepX = 2;
+  player.stepY = 5;
+}
+
+Player.prototype.handleInput = function (dir) {
+  switch (dir) {
+    case 'up':
+      this.stepY -= 1;
+      break;
+    case 'down':
+      this.stepY += 1;
+      break;
+    case 'left':
+      this.stepX -= 1;
+      break;
+    case 'right':
+      this.stepX += 1;
+      break;
+    default:
+      break;
+  }
+};
+
+Player.prototype.render = function () {
+  ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+
+const player = new Player();
+const allEnemies = [new Enemy(1), new Enemy(2), new Enemy(3, player)];
+
+document.addEventListener('keyup', function (e) {
+  var allowedKeys = {
+    37: 'left',
+    38: 'up',
+    39: 'right',
+    40: 'down',
+  };
+
+  player.handleInput(allowedKeys[e.keyCode]);
 });
