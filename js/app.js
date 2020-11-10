@@ -38,9 +38,9 @@ Enemy.prototype.render = function () {
 
 Enemy.prototype.checkCollision = function () {
   if (
-    this.x >= player.x - conf.bugWidth &&
-    this.x <= player.x + conf.playerWidth &&
-    this.y == player.y
+    this.x >= this.player.x - conf.bugWidth &&
+    this.x <= this.player.x + conf.playerWidth &&
+    this.y == this.player.y
   )
     gameOver();
 };
@@ -114,7 +114,8 @@ Player.prototype.render = function () {
 };
 
 const player = new Player();
-const allEnemies = [new Enemy(1), new Enemy(2), new Enemy(3, player)];
+
+const allEnemies = [1, 2, 3].map((row) => new Enemy(row, player));
 
 document.addEventListener('keyup', function (e) {
   var allowedKeys = {
